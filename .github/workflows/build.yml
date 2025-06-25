@@ -39,20 +39,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - config: android_arm64
-            artifact_name: tflite-runtime-android-arm64
-          - config: android_arm
-            artifact_name: tflite-runtime-android-arm
-          - config: android_x86_64
-            artifact_name: tflite-runtime-android-x86_64
-          - config: android_x86
-            artifact_name: tflite-runtime-android-x86
+          #- config: android_arm64
+           # artifact_name: tflite-runtime-android-arm64
+          #- config: android_arm
+           # artifact_name: tflite-runtime-android-arm
+          #- config: android_x86_64
+           # artifact_name: tflite-runtime-android-x86_64
+          #- config: android_x86
+           # artifact_name: tflite-runtime-android-x86
           - config: android_fat_aar
             artifact_name: tflite-runtime-android-fat-aar
     env:
-      ANDROID_SDK_API_LEVEL: 36
-      ANDROID_NDK_API_LEVEL: 26
-      ANDROID_BUILD_TOOLS_VERSION: '36.0.0'
+      ANDROID_SDK_API_LEVEL: 30
+      ANDROID_NDK_API_LEVEL: 21
+      ANDROID_BUILD_TOOLS_VERSION: '30.0.3'
       CC: clang-17
       CXX: clang++-17
       HERMETIC_PYTHON_VERSION: 3.12    
@@ -76,7 +76,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y build-essential
       - uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r26d
+          ndk-version: r25b
           add-to-path: true
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
@@ -110,12 +110,13 @@ jobs:
           export ANDROID_SDK_HOME=$ANDROID_HOME
 
           # Main
-          bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64,x86 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite
+          bazel build -c opt --cxxopt=--std=c++17 --config=android_arm64 --fat_apk_cpu=x86,x86_64,arm64-v8a,armeabi-v7a --define=android_dexmerger_tool=d8_dexmerge --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite
+          #bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64,x86 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite.aar artifact
           
           # GPU Delegate
-          bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64,x86 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite-gpu
-          cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite-gpu.aar artifact
+          #bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64,x86 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite-gpu
+          #cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite-gpu.aar artifact
       - name: Compress artifact
         run: |
           mv artifact/ "${{ matrix.artifact_name }}-${{ env.VERSION }}"
