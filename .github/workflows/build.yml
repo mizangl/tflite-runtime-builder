@@ -76,8 +76,7 @@ jobs:
       - uses: nttld/setup-ndk@v1
         with:
           ndk-version: r26d
-      - run: ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
-
+          add-to-path: true
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
         env:
