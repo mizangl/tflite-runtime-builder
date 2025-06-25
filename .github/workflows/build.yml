@@ -90,7 +90,8 @@ jobs:
             --define=android_incremental_dexing_tool=d8_dexbuilder \
             --linkopt=-Wl,-z,max-page-size=16384 \
             --linkopt=-Wl,-z,common-page-size=16384 \
-            tensorflow/lite/java:tensorflow-lite
+            tensorflow/lite/java:tensorflow-lite \
+            --platforms=@bazel_tools//platforms:android
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite.aar artifact
           
           # GPU Delegate
@@ -100,7 +101,8 @@ jobs:
             --define=android_incremental_dexing_tool=d8_dexbuilder \
             --linkopt=-Wl,-z,max-page-size=16384 \
             --linkopt=-Wl,-z,common-page-size=16384 \
-            tensorflow/lite/java:tensorflow-lite-gpu
+            tensorflow/lite/java:tensorflow-lite-gpu \
+            --platforms=@bazel_tools//platforms:android
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite-gpu.aar artifact
       - name: Compress artifact
         run: |
