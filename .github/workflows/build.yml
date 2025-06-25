@@ -19,7 +19,7 @@ on:
         required: false
       xnn_options:
         description: "XNNPack build options"
-        default: '--define=xnn_enable_arm_bf16=false --define=xnn_enable_avx512amx=false --define=xnn_enable_avxvnniint8=false --define=xnn_enable_avxvnni=false --define=xnn_enable_avx512fp16=false'
+        default: '--define=xnn_enable_arm_bf16=false --define=xnn_enable_arm_i8mm=false --define=xnn_enable_avx512amx=false --define=xnn_enable_avxvnniint8=false --define=xnn_enable_avxvnni=false --define=xnn_enable_avx512fp16=false'
         required: false
 
 permissions:
