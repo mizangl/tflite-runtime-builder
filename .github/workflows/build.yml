@@ -75,6 +75,19 @@ jobs:
         with:
           ndk-version: r21b
           add-to-path: true
+      - name: Fetch Bazel dependencies (to populate external/)
+        run: |
+          bazel fetch //tensorflow/lite/java:tensorflow-lite
+      - name: Patch XNNPACK BUILD.bazel to fix ambiguous linkopts
+        run: |
+          XNNPACK_BUILD="external/XNNPACK/BUILD.bazel"
+          if [ -f "$XNNPACK_BUILD" ]; then
+            # Replace ambiguous linkopts select with empty lists for both android and linux_k8
+            sed -i '/linkopts = select({/,/})/c\linkopts = select({\n    "//build_config:android": [],\n    "//build_config:linux_k8": [],\n    "//conditions:default": [],\n})' "$XNNPACK_BUILD"
+          else
+            echo "XNNPACK BUILD.bazel not found!"
+            exit 1
+          fi
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
         env:
