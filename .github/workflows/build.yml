@@ -62,6 +62,9 @@ jobs:
           submodules: recursive
           github-server-url: https://github.com
       - uses: bazel-contrib/setup-bazel@0.15.0
+      - uses: bazel-contrib/setup-bazel@0.15.0
+        with:
+          bazel-version: 7.1.2
       - name: Install dependencies
         run: |
           sudo apt-get remove -y gcc g++
