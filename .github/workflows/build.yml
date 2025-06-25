@@ -61,9 +61,13 @@ jobs:
           ref: v${{ env.VERSION }}
           submodules: recursive
           github-server-url: https://github.com
-      - uses: bazel-contrib/setup-bazel@0.15.0
-        with:
-          bazel-version: 7.4.1
+      - name: Install Bazel 7.4.1
+        run: |
+          wget https://github.com/bazelbuild/bazel/releases/download/7.4.1/bazel-7.4.1-linux-x86_64
+          chmod +x bazel-7.4.1-linux-x86_64
+          sudo mv bazel-7.4.1-linux-x86_64 /usr/local/bin/bazel
+      - name: Check Bazel version
+        run: bazel --version
       - name: Install dependencies
         run: |
           sudo apt-get remove -y gcc g++
