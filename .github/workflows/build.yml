@@ -19,7 +19,7 @@ on:
         required: false
       xnn_options:
         description: "XNNPack build options"
-        default: '--define=xnn_enable_avx512amx=false --define=xnn_enable_avxvnniint8=false --define=xnn_enable_avxvnni=false --define=xnn_enable_avx512fp16=false'
+        default: '--define=xnn_enable_arm_bf16=false --define=xnn_enable_avx512amx=false --define=xnn_enable_avxvnniint8=false --define=xnn_enable_avxvnni=false --define=xnn_enable_avx512fp16=false'
         required: false
 
 permissions:
@@ -73,7 +73,7 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r25c
+          ndk-version: r21b
           add-to-path: true
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
