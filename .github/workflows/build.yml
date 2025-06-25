@@ -45,6 +45,8 @@ jobs:
             artifact_name: tflite-runtime-android-arm
           - config: android_x86_64
             artifact_name: tflite-runtime-android-x86_64
+          - config: android_x86
+            artifact_name: tflite-runtime-android-x86
           - config: android_fat_aar
             artifact_name: tflite-runtime-android-fat-aar
     env:
@@ -69,12 +71,13 @@ jobs:
           chmod u+x llvm.sh
           sudo ./llvm.sh 17
           sudo apt-get update
-          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev clang-17 llvm-17
+          sudo apt-get install -y mesa-common-dev libegl1-mesa-dev libgles2-mesa-dev clang-17 llvm-17    
+      - uses: actions/checkout@v3
       - uses: nttld/setup-ndk@v1
-        id: setup-ndk
         with:
-          ndk-version: r26b
-          add-to-path: true
+          ndk-version: r26d
+      - run: ndk-build NDK_PROJECT_PATH=. APP_BUILD_SCRIPT=./Android.mk NDK_APPLICATION_MK=./Application.mk
+
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
         env:
