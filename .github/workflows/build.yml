@@ -86,15 +86,15 @@ jobs:
           export ANDROID_SDK_HOME=$ANDROID_HOME
 
           # Main
-          bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} tensorflow/lite/c:tensorflowlite_c
+          bazel build --config=android -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} tensorflow/lite/c:tensorflowlite_c
           cp -f bazel-bin/tensorflow/lite/c/libtensorflowlite_c.so artifact
           
           # GPU Delegate
-          bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_delegate.so
+          bazel build --config=android -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_delegate.so
           cp -f bazel-bin/tensorflow/lite/delegates/gpu/libtensorflowlite_gpu_delegate.so artifact
 
           # GL Delegate
-          bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_gl.so
+          bazel build --config=android -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_gl.so
           cp -f bazel-bin/tensorflow/lite/delegates/gpu/libtensorflowlite_gpu_gl.so artifact
 
           # NNAPI Delegate
@@ -109,11 +109,11 @@ jobs:
           export ANDROID_SDK_HOME=$ANDROID_HOME
 
           # Main
-          bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64,x86 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite
+          bazel build --config=android --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64,x86 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite.aar artifact
           
           # GPU Delegate
-          bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64,x86 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite-gpu
+          bazel build --config=android --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64,x86 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite-gpu
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite-gpu.aar artifact
       - name: Compress artifact
         run: |
