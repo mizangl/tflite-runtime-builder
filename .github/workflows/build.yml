@@ -75,7 +75,7 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r25b
+          ndk-version: r21e
           add-to-path: true
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
@@ -124,6 +124,16 @@ jobs:
         with:
           files: "*.tgz"
           tag_name: ${{ env.VERSION }}
+      - name: Patch .bazelrc to avoid k8 toolchain
+        run: |
+          sed -i.bak '/--cpu=k8/d' .bazelrc || true
+          sed -i.bak '/--config=linux_k8/d' .bazelrc || true
+      - name: Print Bazel config
+        run: |
+          bazel info
+          cat .bazelrc || true
+      - name: Clean Bazel cache
+        run: bazel clean
 
   release:
     needs: [build-android]
