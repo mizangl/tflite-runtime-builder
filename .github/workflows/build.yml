@@ -41,12 +41,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          #- config: android_arm64
-          #  artifact_name: tflite-runtime-android-arm64
-          #- config: android_arm
-          #  artifact_name: tflite-runtime-android-arm
-          #- config: android_x86_64
-          #  artifact_name: tflite-runtime-android-x86_64
+          - config: android_x86_64
+            artifact_name: tflite-runtime-android-x86_64
           - config: android_fat_aar
             artifact_name: tflite-runtime-android-fat-aar
     env:
@@ -78,10 +74,10 @@ jobs:
         with:
           ndk-version: r21e
           add-to-path: true
-      - name: Patch .bazelrc to avoid k8 toolchain
-        run: |
-          sed -i.bak '/--cpu=k8/d' .bazelrc || true
-          sed -i.bak '/--config=linux_k8/d' .bazelrc || true
+      #- name: Patch .bazelrc to avoid k8 toolchain
+       # run: |
+        #  sed -i.bak '/--cpu=k8/d' .bazelrc || true
+         # sed -i.bak '/--config=linux_k8/d' .bazelrc || true
 
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
@@ -92,15 +88,15 @@ jobs:
           export ANDROID_SDK_HOME=$ANDROID_HOME
 
           # Main
-          bazel build --config=android -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} tensorflow/lite/c:tensorflowlite_c
+          bazel build --config=${{ matrix.config }} -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} tensorflow/lite/c:tensorflowlite_c
           cp -f bazel-bin/tensorflow/lite/c/libtensorflowlite_c.so artifact
           
           # GPU Delegate
-          bazel build --config=android -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_delegate.so
+          bazel build --config=${{ matrix.config }} -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_delegate.so
           cp -f bazel-bin/tensorflow/lite/delegates/gpu/libtensorflowlite_gpu_delegate.so artifact
 
           # GL Delegate
-          bazel build --config=android -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_gl.so
+          bazel build --config=${{ matrix.config }} -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_gl.so
           cp -f bazel-bin/tensorflow/lite/delegates/gpu/libtensorflowlite_gpu_gl.so artifact
 
           # NNAPI Delegate
