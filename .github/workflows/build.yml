@@ -41,14 +41,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - config: android_arm64
-            artifact_name: tflite-runtime-android-arm64
-          - config: android_arm
-            artifact_name: tflite-runtime-android-arm
-          - config: android_x86_64
-            artifact_name: tflite-runtime-android-x86_64
-          #- config: android_fat_aar
-          #  artifact_name: tflite-runtime-android-fat-aar
+          #- config: android_arm64
+          #  artifact_name: tflite-runtime-android-arm64
+          #- config: android_arm
+          #  artifact_name: tflite-runtime-android-arm
+          #- config: android_x86_64
+          #  artifact_name: tflite-runtime-android-x86_64
+          - config: android_fat_aar
+            artifact_name: tflite-runtime-android-fat-aar
     env:
       ANDROID_SDK_API_LEVEL: 31
       ANDROID_NDK_API_LEVEL: 26
@@ -63,6 +63,7 @@ jobs:
           ref: master
           submodules: recursive
           github-server-url: https://github.com
+
       - uses: bazel-contrib/setup-bazel@0.15.0
       - name: Install dependencies
         run: |
@@ -77,6 +78,11 @@ jobs:
         with:
           ndk-version: r21e
           add-to-path: true
+      - name: Patch .bazelrc to avoid k8 toolchain
+        run: |
+          sed -i.bak '/--cpu=k8/d' .bazelrc || true
+          sed -i.bak '/--config=linux_k8/d' .bazelrc || true
+
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
         env:
@@ -124,10 +130,6 @@ jobs:
         with:
           files: "*.tgz"
           tag_name: ${{ env.VERSION }}
-      - name: Patch .bazelrc to avoid k8 toolchain
-        run: |
-          sed -i.bak '/--cpu=k8/d' .bazelrc || true
-          sed -i.bak '/--config=linux_k8/d' .bazelrc || true
       - name: Print Bazel config
         run: |
           bazel info
