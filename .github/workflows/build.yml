@@ -9,19 +9,19 @@ on:
       version:
         description: "Semantic version (e.g., 2.19.0)"
         default: '2.19.0'
-        required: false
+        required: true
       release:
         description: "If true, release the artifact"
-        type: boolean
         default: true
-        required: false
+        type: boolean
+        required: true
       repository:
         description: "Name of a target repository"
         default: 'tensorflow/tensorflow'
         required: false
       xnn_options:
         description: "XNNPack build options"
-        default: '--define=xnn_enable_arm_bf16=false --define=xnn_enable_arm_i8mm=false --define=xnn_enable_avx512amx=false --define=xnn_enable_avxvnniint8=false --define=xnn_enable_avxvnni=false --define=xnn_enable_avx512fp16=false'
+        default: '--define=xnn_enable_avx512amx=false --define=xnn_enable_avxvnniint8=false --define=xnn_enable_avxvnni=false --define=xnn_enable_avx512fp16=false'
         required: false
 
 permissions:
@@ -41,13 +41,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - config: android_arm64
+            artifact_name: tflite-runtime-android-arm64
+          #- config: android_arm
+            #artifact_name: tflite-runtime-android-arm
           #- config: android_x86_64
             #artifact_name: tflite-runtime-android-x86_64
-          - config: android_fat_aar
-            artifact_name: tflite-runtime-android-fat-aar
+          #- config: android_fat_aar
+            #artifact_name: tflite-runtime-android-fat-aar
     env:
-      ANDROID_HOME: ${{ github.workspace }}/android-sdk
-      ANDROID_SDK_HOME: ${{ github.workspace }}/android-sdk
       ANDROID_SDK_API_LEVEL: 31
       ANDROID_NDK_API_LEVEL: 26
       ANDROID_BUILD_TOOLS_VERSION: '31.0.0'
@@ -55,21 +57,12 @@ jobs:
       CXX: clang++-17
       HERMETIC_PYTHON_VERSION: 3.12    
     steps:
-      - name: Free up disk space
-        run: |
-          sudo apt-get clean
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
-          docker rmi $(docker images -q) || true
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.REPOSITORY }}
           ref: master
           submodules: recursive
           github-server-url: https://github.com
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-        with:
-          sdk-path: ${{ github.workspace }}/android-sdk
       - uses: bazel-contrib/setup-bazel@0.15.0
       - name: Install dependencies
         run: |
@@ -82,13 +75,8 @@ jobs:
       - uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r21e
+          ndk-version: r21b
           add-to-path: true
-      #- name: Patch .bazelrc to avoid k8 toolchain
-       # run: |
-        #  sed -i.bak '/--cpu=k8/d' .bazelrc || true
-         # sed -i.bak '/--config=linux_k8/d' .bazelrc || true
-
       - name: Build shared libraries
         if: ${{ matrix.config != 'android_fat_aar' }}
         env:
@@ -98,24 +86,20 @@ jobs:
           export ANDROID_SDK_HOME=$ANDROID_HOME
 
           # Main
-          bazel build --config=${{ matrix.config }} -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} tensorflow/lite/c:tensorflowlite_c
+          bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} tensorflow/lite/c:tensorflowlite_c
           cp -f bazel-bin/tensorflow/lite/c/libtensorflowlite_c.so artifact
           
           # GPU Delegate
-          bazel build --config=${{ matrix.config }} -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_delegate.so
+          bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_delegate.so
           cp -f bazel-bin/tensorflow/lite/delegates/gpu/libtensorflowlite_gpu_delegate.so artifact
 
           # GL Delegate
-          bazel build --config=${{ matrix.config }} -c opt --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_gl.so
+          bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --copt -Os --copt -DTFLITE_GPU_BINARY_RELEASE --copt -fvisibility=hidden --linkopt -s --strip always tensorflow/lite/delegates/gpu:libtensorflowlite_gpu_gl.so
           cp -f bazel-bin/tensorflow/lite/delegates/gpu/libtensorflowlite_gpu_gl.so artifact
 
           # NNAPI Delegate
           # bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} tensorflow/lite/delegates/nnapi:nnapi_delegate
           # cp -f bazel-bin/tensorflow/lite/delegates/nnapi/libnnapi_delegate.so artifact
-      - name: Print Bazel config
-        run: |
-          bazel info
-          cat .bazelrc || true
       - name: Build AAR
         if: ${{ matrix.config == 'android_fat_aar' }}
         env:
@@ -125,11 +109,11 @@ jobs:
           export ANDROID_SDK_HOME=$ANDROID_HOME
 
           # Main
-          bazel build --config=android --fat_apk_cpu=arm64-v8a --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite
+          bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite.aar artifact
           
           # GPU Delegate
-          bazel build --config=android --fat_apk_cpu=arm64-v8a --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite-gpu
+          bazel build -c opt --fat_apk_cpu=arm64-v8a,armeabi-v7a,x86_64 --cxxopt=--std=c++17 ${{ inputs.xnn_options }} --host_crosstool_top=@bazel_tools//tools/cpp:toolchain --define=android_dexmerger_tool=d8_dexmerger --define=android_incremental_dexing_tool=d8_dexbuilder tensorflow/lite/java:tensorflow-lite-gpu
           cp -f bazel-bin/tensorflow/lite/java/tensorflow-lite-gpu.aar artifact
       - name: Compress artifact
         run: |
@@ -140,9 +124,6 @@ jobs:
         with:
           files: "*.tgz"
           tag_name: ${{ env.VERSION }}
-
-      - name: Clean Bazel cache
-        run: bazel clean
 
   release:
     needs: [build-android]
