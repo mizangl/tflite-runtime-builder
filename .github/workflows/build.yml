@@ -106,6 +106,10 @@ jobs:
           # NNAPI Delegate
           # bazel build -c opt --config=${{ matrix.config }} --cxxopt=--std=c++17 ${{ inputs.xnn_options }} tensorflow/lite/delegates/nnapi:nnapi_delegate
           # cp -f bazel-bin/tensorflow/lite/delegates/nnapi/libnnapi_delegate.so artifact
+      - name: Print Bazel config
+        run: |
+          bazel info
+          cat .bazelrc || true
       - name: Build AAR
         if: ${{ matrix.config == 'android_fat_aar' }}
         env:
@@ -130,10 +134,7 @@ jobs:
         with:
           files: "*.tgz"
           tag_name: ${{ env.VERSION }}
-      - name: Print Bazel config
-        run: |
-          bazel info
-          cat .bazelrc || true
+
       - name: Clean Bazel cache
         run: bazel clean
 
