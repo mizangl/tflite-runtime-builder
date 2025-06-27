@@ -40,10 +40,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - config: android_arm64
-            artifact_name: tflite-runtime-android-arm64
-          - config: android_x86_64
-            artifact_name: tflite-runtime-android-x86_64
+          #- config: android_arm64
+            #artifact_name: tflite-runtime-android-arm64
+          #- config: android_x86_64
+            #artifact_name: tflite-runtime-android-x86_64
           - config: android_fat_aar
             artifact_name: tflite-runtime-android-fat-aar
     env:

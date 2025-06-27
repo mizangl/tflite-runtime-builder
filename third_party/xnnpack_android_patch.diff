@@ -1,0 +1,12 @@
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -895,10 +895,8 @@
+ linkopts = select({
+-    "//build_config:linux_k8": [
+-        "-pthread",
+-    ],
+     "//build_config:android": [
+         "-llog",
+     ],
+     "//conditions:default": [],
+ }) 
