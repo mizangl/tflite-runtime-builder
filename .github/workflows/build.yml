@@ -58,6 +58,7 @@ jobs:
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
+          android: false
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.REPOSITORY }}
