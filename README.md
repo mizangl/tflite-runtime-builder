@@ -4,7 +4,7 @@ Build [TensorFlow Lite](https://www.tensorflow.org/lite) runtime with GitHub Act
 
 ## Supported Platforms
 
-You can download the archived files of the runtime binaries from [Releases](https://github.com/DeNA/tflite-runtime-builder/releases).
+You can download the archived files of the runtime binaries from [Releases](https://github.com/mizangl/tflite-runtime-builder/releases).
 
 | Platform | Type   | ABI         |  Archived file         |
 |----------|--------|-------------|---------------------------------------|
