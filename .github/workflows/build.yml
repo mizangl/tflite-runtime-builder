@@ -7,7 +7,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Semantic version (e.g., 2.19.0)"
+        description: "Branch name"
+        default: 'elf_aligned'
         required: true
       release:
         description: "If true, release the artifact"
@@ -15,11 +16,11 @@ on:
         required: true
       repository:
         description: "Name of a target repository"
-        default: 'tensorflow/tensorflow'
+        default: 'mizangl/tensorflow'
         required: false
       xnn_options:
         description: "XNNPack build options"
-        default: '--define=xnn_enable_arm_bf16=false --define=xnn_enable_arm_i8mm=false --define=xnn_enable_avx512amx=false --define=xnn_enable_avxvnniint8=false --define=xnn_enable_avxvnni=false --define=xnn_enable_avx512fp16=false'
+        default: '--define=xnn_enable_avxvnniint8=false'
         required: false
 
 permissions:
@@ -30,7 +31,7 @@ env:
     |- # Enter release tag name or version in workflow_dispatch. Recent version if not specified
     ${{ github.event.release.tag_name || github.event.inputs.version || '2.19.0' }}
   REPOSITORY:
-    ${{ github.event.inputs.repository || 'tensorflow/tensorflow' }}
+    ${{ github.event.inputs.repository || 'mizangl/tensorflow' }}
 
 jobs:
   build-android:
@@ -39,12 +40,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-#          - config: android_arm64
-#            artifact_name: tflite-runtime-android-arm64
-#          - config: android_arm
-#            artifact_name: tflite-runtime-android-arm
-#          - config: android_x86_64
-#            artifact_name: tflite-runtime-android-x86_64
+          - config: android_arm64
+            artifact_name: tflite-runtime-android-arm64
+          - config: android_x86_64
+            artifact_name: tflite-runtime-android-x86_64
           - config: android_fat_aar
             artifact_name: tflite-runtime-android-fat-aar
     env:
